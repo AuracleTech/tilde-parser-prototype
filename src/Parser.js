@@ -390,8 +390,10 @@ class Parser {
 		switch (this._lookahead.type) {
 			case "Literal":
 				return this.Literal();
+		}
+		switch (this._lookahead.kind) {
 			case "(":
-				return this.ParenthizedExpression(); // TODO: TEST ParenthizedExpression
+				return this.ParenthizedExpression();
 			default:
 				return this.LeftHandSideExpression();
 		}
@@ -422,12 +424,31 @@ class Parser {
 				return this.NumericLiteral();
 			case "String":
 				return this.StringLiteral();
+			case "BoolFalse":
+				return this.BoolLiteral("BoolFalse");
+			case "BoolTrue":
+				return this.BoolLiteral("BoolTrue");
 			default:
 				throw new ParserError(
 					[`Unexpected literal token {}.`],
 					[Colors.red, this._lookahead.kind]
 				);
 		}
+	}
+
+	/**
+	 * BoolLiteral
+	 *  : BoolTrue
+	 * | BoolFalse
+	 * ;
+	 */
+	BoolLiteral(option) {
+		const token = this._eat(option);
+		return {
+			type: token.type,
+			kind: token.kind,
+			value: token.value,
+		};
 	}
 
 	/**
