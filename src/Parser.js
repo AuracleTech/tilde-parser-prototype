@@ -111,6 +111,7 @@ class Parser {
 	IfStatement() {
 		this._eat("if", this.IfStatement.name);
 		// TODO: check if the expression is a boolean
+		// TODO: Do everything on this basically
 	}
 
 	/**
@@ -173,9 +174,11 @@ class Parser {
 	VariableDeclaration() {
 		const id = this.Identifier();
 
+		// let test, meme = "yes" WILL RESULT IN test = "empty init" and meme = "yes"
+
 		// OptVariableIdentifier
 		const init =
-			this._lookahead.kind !== "Comma" ? this.VariableInitializer() : null;
+			this._lookahead.kind === "Comma" ? null : this.VariableInitializer();
 		return {
 			type: "VariableDeclarator",
 			id,
@@ -388,7 +391,7 @@ class Parser {
 		switch (this._lookahead.type) {
 			case "Literal":
 				return this.Literal();
-			case "Identifier":
+			case "(":
 				return this.ParenthizedExpression(); // TODO: TEST ParenthizedExpression
 			default:
 				return this.LeftHandSideExpression();
@@ -533,7 +536,7 @@ class Parser {
 
 		this._lookahead = this._tokenizer.nextToken();
 
-		// TODO: Remove this after transfer to TypeScript
+		// TODO: DEBUG ONLY
 		if (!this._lookahead) {
 			console.log(
 				`End of file reached.

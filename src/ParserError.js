@@ -1,8 +1,7 @@
-const { Colors, get } = require("./Colors");
-const baseColor = Colors.gray;
-const titleFormat =
-	get(Colors.blink) + get(Colors.darkRed, 48) + get(Colors.red);
-const reset = get(Colors.reset);
+const { Colors } = require("./Colors");
+const base = Colors.gray;
+const titleFormat = Colors.blink + Colors.bgDarkRed + Colors.red;
+const reset = Colors.reset;
 
 /**
  * ParserError represents an error during parsing.
@@ -18,11 +17,11 @@ class ParserError extends Error {
 			let prefix = placeholders[index][0];
 			let text = placeholders[index][1];
 			++index;
-			return `${get(prefix)}${text}${reset}${get(baseColor)}`;
+			return `${prefix}${text}${reset}${base}`;
 		});
 		console.log(
-			`${titleFormat}Error thrown by ${origin}${reset}`,
-			`${get(baseColor)}\n${message}${reset}`
+			`${titleFormat}     Error thrown by ${origin}     ${reset}`,
+			`\n${base}${message}${reset}`
 		);
 		super();
 	}
