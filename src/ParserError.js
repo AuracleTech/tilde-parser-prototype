@@ -10,7 +10,12 @@ const reset = Colors.reset;
  * @param {...} args - Replaces any placeholders in the message.
  */
 class ParserError extends Error {
-	constructor(origin, messages, ...placeholders) {
+	constructor(messages, ...placeholders) {
+		super();
+		let origin;
+		if (this.stack)
+			origin = this.stack.match(/at ([^\s]+)/)[0].replace(/at /, "");
+
 		let index = 0;
 		let message = messages.join("\n");
 		message = message.replace(/\{\}/g, () => {
@@ -23,7 +28,6 @@ class ParserError extends Error {
 			`${titleFormat}     Error thrown by ${origin}     ${reset}`,
 			`\n${base}${message}${reset}`
 		);
-		super();
 	}
 }
 

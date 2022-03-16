@@ -95,7 +95,6 @@ class Parser {
 				return this.ExpressionStatement();
 			default:
 				throw new ParserError(
-					this.Statement.name,
 					[`Unexpected token {}.`, `Line {}, column {}.`],
 					[Colors.red, this._lookahead.kind],
 					[Colors.white, this._lookahead.line],
@@ -109,7 +108,7 @@ class Parser {
 	 *  : 'if' 'Expression' Statement 'else' Statement
 	 */
 	IfStatement() {
-		this._eat("if", this.IfStatement.name);
+		this._eat("if");
 		// TODO: check if the expression is a boolean
 		// TODO: Do everything on this basically
 	}
@@ -120,11 +119,11 @@ class Parser {
 	 *   ;
 	 */
 	BlockStatement() {
-		this._eat("{", this.BlockStatement.name);
+		this._eat("{");
 
 		const body = this._lookahead.kind === "}" ? [] : this.StatementList("}");
 
-		this._eat("}", this.BlockStatement.name);
+		this._eat("}");
 
 		return {
 			type: "BlockStatement",
@@ -138,7 +137,7 @@ class Parser {
 	 *   ;
 	 */
 	VariableStatement(kind) {
-		this._eat(kind, this.VariableStatement.name);
+		this._eat(kind);
 		const declarations = this.VariableDeclarationList();
 		return {
 			type: "VariableDeclaration",
@@ -161,7 +160,7 @@ class Parser {
 			// TODO: Discard of that disgusting comma-separated list
 			this._lookahead &&
 			this._lookahead.kind === "Comma" &&
-			this._eat("Comma", this.VariableDeclarationList.name)
+			this._eat("Comma")
 		);
 		return declarations;
 	}
@@ -192,7 +191,7 @@ class Parser {
 	 *  ;
 	 */
 	VariableInitializer() {
-		this._eat("Assign", this.VariableInitializer.name);
+		this._eat("Assign");
 		return this.AssignmentExpression();
 	}
 
@@ -335,7 +334,7 @@ class Parser {
 	 */
 	AssignmentOperator() {
 		if (this._lookahead.kind === "Assign") {
-			return this._eat("Assign", this.AssignmentOperator.name);
+			return this._eat("Assign");
 		}
 	}
 
@@ -363,7 +362,7 @@ class Parser {
 	 *   ;
 	 */
 	Identifier() {
-		const token = this._eat("Variable", this.Identifier.name);
+		const token = this._eat("Variable");
 		return {
 			type: token.type,
 			kind: token.kind,
@@ -405,9 +404,9 @@ class Parser {
 	 */
 	ParenthizedExpression() {
 		// TODO: Verify what this is supposed to do and if it's valid
-		this._eat("(", this.ParenthizedExpression.name);
+		this._eat("(");
 		const expression = this.Expression();
-		this._eat(")", this.ParenthizedExpression.name);
+		this._eat(")");
 		return expression;
 	}
 
@@ -425,7 +424,6 @@ class Parser {
 				return this.StringLiteral();
 			default:
 				throw new ParserError(
-					this.Literal.name,
 					[`Unexpected literal token {}.`],
 					[Colors.red, this._lookahead.kind]
 				);
@@ -438,7 +436,7 @@ class Parser {
 	 *   ;
 	 */
 	NumericLiteral() {
-		const token = this._eat("Number", this.NumericLiteral.name);
+		const token = this._eat("Number");
 		return {
 			type: "Literal",
 			kind: "Number",
@@ -452,7 +450,7 @@ class Parser {
 	 *   ;
 	 */
 	StringLiteral() {
-		const token = this._eat("String", this.StringLiteral.name);
+		const token = this._eat("String");
 		return {
 			type: "Literal",
 			kind: "String",
@@ -467,10 +465,7 @@ class Parser {
 		let left = this[builderName]();
 
 		while (this._lookahead && this._lookahead.kind === operatorToken) {
-			const operator = this._eat(
-				operatorToken,
-				this._BinaryExpression.name
-			).value;
+			const operator = this._eat(operatorToken).value;
 			const right = this[builderName]();
 
 			left = {
@@ -491,58 +486,31 @@ class Parser {
 		if (node.kind === "Variable") {
 			return node;
 		}
-		throw new ParserError(this._checkValidAssignmentTarget.name, [
-			`Invalid left-hand side in assignment expression.`,
-		]);
+		throw new ParserError([`Invalid left-hand side in assignment expression.`]);
 	}
 
-	_eat(kind, caller) {
+	_eat(kind) {
 		const token = this._lookahead;
-
-		// TODO: Remove this after transfer to TypeScript
-		if (!caller) {
-			throw new ParserError(
-				this._eat.name,
-				[`Missing caller name in {}`],
-				[Colors.red, this._eat.name]
-			);
-		}
 
 		if (!token) {
 			throw new ParserError(
-				this._eat.name,
-				[`Unexpected {}, expected token kind {}.`, `Token ate by {} function.`],
+				[`Unexpected {}, expected token kind {}.`],
 				[Colors.red, "end of file"],
-				[Colors.green, kind],
-				[Colors.white, caller]
+				[Colors.green, kind]
 			);
 		}
 
 		if (token.kind !== kind) {
 			throw new ParserError(
-				this._eat.name,
-				[
-					`Unexpected token kind {}, expected {}.`,
-					`Token line {} column {}.`,
-					`Token ate by {} function.`,
-				],
+				[`Unexpected token kind {}, expected {}.`, `Token line {} column {}.`],
 				[Colors.red, token.kind],
 				[Colors.green, kind],
 				[Colors.white, token.line],
-				[Colors.white, token.column],
-				[Colors.white, caller]
+				[Colors.white, token.column]
 			);
 		}
 
 		this._lookahead = this._tokenizer.nextToken();
-
-		// TODO: DEBUG ONLY
-		if (!this._lookahead) {
-			console.log(
-				`End of file reached.
-				Last token available eaten by '${caller}' function.`
-			);
-		}
 
 		return token;
 	}

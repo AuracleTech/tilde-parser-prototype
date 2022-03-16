@@ -4,6 +4,8 @@
 
 const { Token } = require("./Token");
 const { TokenTypes } = require("./Specifications");
+const { ParserError } = require("./ParserError");
+const { Colors } = require("./Colors");
 
 class Tokenizer {
 	/**
@@ -82,7 +84,14 @@ class Tokenizer {
 			return token;
 		}
 
-		throw new Error(`Unexpected token '${buffer[0]}'.`);
+		// TODO: Verify for some reason Im getting 1 character less on column
+
+		throw new ParserError(
+			[`Unexpected token {}.`, `Token line {} column {}.`],
+			[Colors.red, buffer[0]],
+			[Colors.white, this._line],
+			[Colors.white, this._column]
+		);
 	}
 
 	/**
