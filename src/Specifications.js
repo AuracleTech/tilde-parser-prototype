@@ -78,8 +78,8 @@ const TokenTypes = [
 	new TokenType("Keyword", "Else", { regex: /^else/ }),
 	new TokenType("Keyword", "ShortIf", { regex: /^\?/ }),
 
-	new TokenType("VarDeclarator", "Let", { regex: /^let/ }),
-	new TokenType("VarDeclarator", "Const", { regex: /^const/ }),
+	new TokenType("VarDeclarator", "Let", { regex: /^\let\b/ }),
+	new TokenType("VarDeclarator", "Const", { regex: /^\bconst\b/ }),
 
 	new TokenType("Identifier", "Variable", {
 		regex: /^[a-z_][a-z_]+/,
