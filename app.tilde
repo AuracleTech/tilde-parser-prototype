@@ -1,5 +1,5 @@
 let empty_state, assigned_var = "yes"
 
 {
-    const constant_var = 262
+    const constant_var = 727
 }
