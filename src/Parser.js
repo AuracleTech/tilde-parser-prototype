@@ -446,12 +446,27 @@ class Parser {
 				return this.BoolLiteral("BoolFalse");
 			case "BoolTrue":
 				return this.BoolLiteral("BoolTrue");
+			case "Char":
+				return this.CharLiteral();
 			default:
 				throw new ParserError(
 					[`Unexpected literal token {}.`],
 					[Colors.red, this._lookahead.kind]
 				);
 		}
+	}
+
+	/**
+	 * CharLiteral
+	 *  : CHAR
+	 * ;
+	 */
+	CharLiteral() {
+		const token = this._eat("Char");
+		return {
+			type: "CharLiteral",
+			value: token.value,
+		};
 	}
 
 	/**

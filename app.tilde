@@ -1,4 +1,4 @@
-let incredibly_simple
+let incredibly_simple ='E'
 
 if (true) {
     incredibly_simple = "It wasn't."
