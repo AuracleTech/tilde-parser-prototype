@@ -74,11 +74,11 @@ const TokenTypes = [
 	new TokenType("PrimaryExpressions", "(", { regex: /^\(/ }),
 	new TokenType("PrimaryExpressions", ")", { regex: /^\)/ }),
 
-	new TokenType("Keyword", "If", { regex: /^if/ }),
+	new TokenType("Keyword", "If", { regex: /^\bif\b/ }),
 	new TokenType("Keyword", "Else", { regex: /^else/ }),
 	new TokenType("Keyword", "ShortIf", { regex: /^\?/ }),
 
-	new TokenType("VarDeclarator", "Let", { regex: /^\let\b/ }),
+	new TokenType("VarDeclarator", "Let", { regex: /^\blet\b/ }),
 	new TokenType("VarDeclarator", "Const", { regex: /^\bconst\b/ }),
 
 	new TokenType("Identifier", "Variable", {

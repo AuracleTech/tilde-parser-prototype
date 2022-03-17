@@ -1,3 +1,5 @@
+process.on("uncaughtException", console.error);
+
 const { Parser } = require("./src/Parser");
 const parser = new Parser();
 

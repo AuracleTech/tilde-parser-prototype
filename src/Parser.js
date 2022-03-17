@@ -84,7 +84,7 @@ class Parser {
 	*/
 	Statement() {
 		switch (this._lookahead.kind) {
-			case "if":
+			case "If":
 				return this.IfStatement();
 			case "{":
 				return this.BlockStatement();
@@ -105,12 +105,29 @@ class Parser {
 
 	/**
 	 * IfStatement
-	 *  : 'if' 'Expression' Statement 'else' Statement
+	 *  : 'if' '(' 'Expression' ')' Statement 'else' Statement
 	 */
 	IfStatement() {
-		this._eat("if");
-		// TODO: check if the expression is a boolean
-		// TODO: Do everything on this basically
+		this._eat("If");
+		this._eat("(");
+		const expression = this.Expression();
+		this._eat(")");
+		const thenBranch = this.Statement();
+		if (this._lookahead.kind === "Else") {
+			this._eat("Else");
+			const elseBranch = this.Statement();
+			return {
+				type: "IfStatement",
+				test: expression,
+				consequent: thenBranch,
+				alternate: elseBranch,
+			};
+		}
+		return {
+			type: "IfStatement",
+			test: expression,
+			consequent: thenBranch,
+		};
 	}
 
 	/**
@@ -536,8 +553,6 @@ class Parser {
 		return token;
 	}
 }
-
-process.on("uncaughtException", console.error);
 
 module.exports = {
 	Parser,

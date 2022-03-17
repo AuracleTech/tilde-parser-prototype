@@ -56,7 +56,7 @@ class Tokenizer {
 
 			// Update line number and column number
 			if (TokenType.kind === "LineEnd") {
-				this._line += 1;
+				this._line++;
 				this._column = 1;
 			} else {
 				this._column += value.length;
@@ -84,13 +84,11 @@ class Tokenizer {
 			return token;
 		}
 
-		// TODO: Verify for some reason Im getting 1 character less on column
-
 		throw new ParserError(
 			[`Unexpected token {}.`, `Token line {} column {}.`],
-			[Colors.red, buffer[0]],
+			[Colors.red, buffer],
 			[Colors.white, this._line],
-			[Colors.white, this._column]
+			[Colors.white, this._column + 1]
 		);
 	}
 
