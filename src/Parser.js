@@ -113,7 +113,7 @@ class Parser {
 		const expression = this.Expression();
 		this._eat(")");
 		const thenBranch = this.Statement();
-		if (this._lookahead.kind === "Else") {
+		if (this._lookahead && this._lookahead.kind === "Else") {
 			this._eat("Else");
 			const elseBranch = this.Statement();
 			return {
@@ -127,6 +127,7 @@ class Parser {
 			type: "IfStatement",
 			test: expression,
 			consequent: thenBranch,
+			alternate: null,
 		};
 	}
 

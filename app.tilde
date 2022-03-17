@@ -1,4 +1,7 @@
-if (true)
-    meme = false
-else
-    lmao
+let incredibly_simple
+
+if (true) {
+    incredibly_simple = "It wasn't."
+} else {
+    incredibly_simple = "It was. Like, really."
+}
