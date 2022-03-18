@@ -74,7 +74,7 @@ class Tokenizer {
 			);
 
 			// Update the cursor in source
-			this._cursor += token.raw.length;
+			this._cursor = token.end;
 
 			// Skip discarded tokens
 			if (TokenType.discard) {
@@ -86,7 +86,7 @@ class Tokenizer {
 
 		throw new ParserError(
 			[`Unexpected token {}.`, `Token line {} column {}.`],
-			[Colors.red, buffer],
+			[Colors.red, this._string.slice(this._cursor, this._cursor + 1)],
 			[Colors.white, this._line],
 			[Colors.white, this._column + 1]
 		);

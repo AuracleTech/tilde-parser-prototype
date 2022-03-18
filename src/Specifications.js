@@ -27,7 +27,7 @@ const TokenTypes = [
 
 	new TokenType("WhiteSpace", "WhiteSpace", { regex: /^\s+/, discard: true }),
 
-	new TokenType("Comment", "Block", { regex: /^\/[\s\S]*?\//, discard: true }),
+	new TokenType("Comment", "Block", { regex: /^~[\s\S]*?~/, discard: true }),
 	new TokenType("Comment", "Line", { regex: /^#.*/, discard: true }),
 
 	new TokenType("Literal", "Number", {
@@ -51,13 +51,12 @@ const TokenTypes = [
 		format: () => true,
 	}),
 
-	new TokenType("Operator", "Add", { regex: /^\+/ }),
-	new TokenType("Operator", "Sub", { regex: /^-/ }),
-	new TokenType("Operator", "Multiply", { regex: /^\*/ }),
-	new TokenType("Operator", "Divide", { regex: /^\// }),
+	new TokenType("AdditiveOperator", "Add", { regex: /^\+/ }),
+	new TokenType("AdditiveOperator", "Subtract", { regex: /^-/ }),
+	new TokenType("MultiplicativeOperator", "Multiply", { regex: /^\*/ }),
+	new TokenType("MultiplicativeOperator", "Divide", { regex: /^\// }),
 	new TokenType("Operator", "Modulo", { regex: /^%/ }),
 	new TokenType("Operator", "Power", { regex: /^\^/ }),
-	new TokenType("Operator", "Equal", { regex: /^==/ }),
 	new TokenType("Operator", "Greater", { regex: /^>/ }),
 	new TokenType("Operator", "Less", { regex: /^</ }),
 	new TokenType("Operator", "And", { regex: /^&/ }),
@@ -68,11 +67,14 @@ const TokenTypes = [
 	new TokenType("Operator", "Dot", { regex: /^\./ }),
 	new TokenType("Operator", "Comma", { regex: /^,/ }),
 
-	new TokenType("PrimaryExpressions", "{", { regex: /^{/ }),
-	new TokenType("PrimaryExpressions", "}", { regex: /^}/ }),
+	new TokenType("CurlyBrace", "{", { regex: /^\{/ }),
+	new TokenType("CurlyBrace", "}", { regex: /^\}/ }),
 
-	new TokenType("PrimaryExpressions", "(", { regex: /^\(/ }),
-	new TokenType("PrimaryExpressions", ")", { regex: /^\)/ }),
+	new TokenType("ParenthizedExpression", "(", { regex: /^\(/ }),
+	new TokenType("ParenthizedExpression", ")", { regex: /^\)/ }),
+
+	new TokenType("BracketedExpression", "[", { regex: /^\[/ }),
+	new TokenType("BracketedExpression", "]", { regex: /^\]/ }),
 
 	new TokenType("Keyword", "If", { regex: /^\bif\b/ }),
 	new TokenType("Keyword", "Else", { regex: /^else/ }),

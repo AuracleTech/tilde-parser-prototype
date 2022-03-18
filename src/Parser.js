@@ -95,7 +95,7 @@ class Parser {
 				return this.ExpressionStatement();
 			default:
 				throw new ParserError(
-					[`Unexpected token {}.`, `Line {}, column {}.`],
+					[`Unexpected token {}.`, `Line {} column {}.`],
 					[Colors.red, this._lookahead.kind],
 					[Colors.white, this._lookahead.line],
 					[Colors.white, this._lookahead.column]
@@ -105,7 +105,7 @@ class Parser {
 
 	/**
 	 * IfStatement
-	 *  : 'if' '(' 'Expression' ')' Statement 'else' Statement
+	 *   : 'if' '(' Expression ')' Statement ('else' Statement)?
 	 */
 	IfStatement() {
 		this._eat("If");
@@ -131,8 +131,8 @@ class Parser {
 
 	/**
 	 * BlockStatement
-	 *   : '{' OptStatementList '}'
-	 *   ;
+	 *  : '{' StatementList? '}'
+	 * ;
 	 */
 	BlockStatement() {
 		this._eat("{");
@@ -146,8 +146,8 @@ class Parser {
 
 	/**
 	 * VariableStatement
-	 *   : 'let' VariableDeclarationList ';'
-	 *   ;
+	 *   : VarDeclarator VariableDeclarationList
+	 * ;
 	 */
 	VariableStatement(kind) {
 		this._eat(kind);
@@ -161,16 +161,14 @@ class Parser {
 
 	/**
 	 * VariableDeclarationList
-	 *   : VariableDeclaration
-	 *   | VariableDeclarationList ',' VariableDeclaration
-	 *   ;
+	 *   : VariableDeclaration (',' VariableDeclaration)*
+	 *  ;
 	 */
 	VariableDeclarationList() {
 		const declarations = [];
 		do {
 			declarations.push(this.VariableDeclaration());
 		} while (
-			// TODO: Discard of that disgusting comma-separated list
 			this._lookahead &&
 			this._lookahead.kind === "Comma" &&
 			this._eat("Comma")
@@ -180,21 +178,32 @@ class Parser {
 
 	/**
 	 * VariableDeclaration
-	 *  : Identifier OptVariableInitializer
-	 *  ;
+	 *  : Identifier VariableInitializer
+	 * ;
 	 */
 	VariableDeclaration() {
 		const id = this.Identifier();
+		// TODO: Remove uncertainty by disabling initializer and commas
+		if (this._lookahead && this._lookahead.kind === "Assign") {
+			const init = this.VariableInitializer();
+			return {
+				type: "VariableDeclarator",
+				id,
+				init,
+			};
+		} else if (this._lookahead && this._lookahead.kind === "Comma") {
+			this._eat("Comma");
+			return {
+				type: "VariableDeclarator",
+				id,
+				init: null,
+			};
+		}
 
-		// let test, meme = "yes" WILL RESULT IN test = "empty init" and meme = "yes"
-
-		// OptVariableIdentifier
-		const init =
-			this._lookahead.kind === "Comma" ? null : this.VariableInitializer();
 		return {
 			type: "VariableDeclarator",
 			id,
-			init,
+			init: null,
 		};
 	}
 
@@ -320,35 +329,16 @@ class Parser {
 	AssignmentExpression() {
 		const left = this.AdditiveExpression();
 
-		if (this._lookahead && this._isAssignmentOperator(this._lookahead.kind)) {
+		if (this._lookahead && this._lookahead.kind == "Assign") {
 			return {
 				type: "AssignmentExpression",
-				operator: this.AssignmentOperator().value,
 				left: this._checkValidAssignmentTarget(left),
 				right: this.AssignmentExpression(),
+				operator: this._eat("Assign").value,
 			};
 		}
 
 		return left;
-	}
-
-	/**
-	 * Whether the token is an assignment operator
-	 */
-	_isAssignmentOperator(tokenType) {
-		return tokenType === "Assign";
-	}
-
-	/**
-	 * AssignmentOperator
-	 *   : SIMPLE_ASSIGN
-	 *   | COMPLEX_ASSIGN
-	 *   ;
-	 */
-	AssignmentOperator() {
-		if (this._lookahead.kind === "Assign") {
-			return this._eat("Assign");
-		}
 	}
 
 	/**
@@ -357,7 +347,10 @@ class Parser {
 	 *   | AdditiveExpression ADDITIVE_OPERATOR Literal -> Literal ADDITIVE_OPERATOR Literal ADDITIVE_OPERATOR Literal
 	 */
 	AdditiveExpression() {
-		return this._BinaryExpression("MultiplicativeExpression", "Add"); // TODO: Add [/^[+\-]/, 'ADDITIVE_OPERATOR'],
+		return this._BinaryExpression(
+			this.MultiplicativeExpression.name,
+			"AdditiveOperator"
+		);
 	}
 
 	/**
@@ -366,7 +359,32 @@ class Parser {
 	 *   | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR
 	 */
 	MultiplicativeExpression() {
-		return this._BinaryExpression("PrimaryExpression", "Multiply"); // TODO: Add  [/^[*\/]/, 'MULTIPLICATIVE_OPERATOR'],
+		return this._BinaryExpression(
+			this.PrimaryExpression.name,
+			"MultiplicativeOperator"
+		);
+	}
+
+	/**
+	 * Generic binary expression
+	 * @param {string} builderName Name of the builder function
+	 * @param {string} operatorTokens Token types for the operators
+	 */
+	_BinaryExpression(builderName, operatorToken) {
+		let left = this[builderName]();
+
+		while (this._lookahead && this._lookahead.type === operatorToken) {
+			const operator = this._eat(this._lookahead.kind);
+
+			left = {
+				type: "BinaryExpression",
+				left,
+				right: this[builderName](),
+				operator: operator.value,
+			};
+		}
+
+		return left;
 	}
 
 	/**
@@ -401,14 +419,20 @@ class Parser {
 	 */
 	PrimaryExpression() {
 		switch (this._lookahead.type) {
+			case "ParenthizedExpression":
+				return this.ParenthizedExpression();
 			case "Literal":
 				return this.Literal();
-		}
-		switch (this._lookahead.kind) {
-			case "(":
-				return this.ParenthizedExpression();
-			default:
+			case "Identifier": // TODO: Verify this
 				return this.LeftHandSideExpression();
+			default:
+				throw new ParserError(
+					[
+						`Expected any valid primary expression`,
+						`received unexpected token type {}`,
+					],
+					[Colors.red, this._lookahead.type]
+				);
 		}
 	}
 
@@ -418,7 +442,6 @@ class Parser {
 	 *   ;
 	 */
 	ParenthizedExpression() {
-		// TODO: Verify what this is supposed to do and if it's valid
 		this._eat("(");
 		const expression = this.Expression();
 		this._eat(")");
@@ -434,15 +457,16 @@ class Parser {
 	Literal() {
 		switch (this._lookahead.kind) {
 			case "Number":
-				return this.NumericLiteral();
 			case "String":
-				return this.StringLiteral();
 			case "BoolFalse":
-				return this.BoolLiteral("BoolFalse");
 			case "BoolTrue":
-				return this.BoolLiteral("BoolTrue");
 			case "Char":
-				return this.CharLiteral();
+				let token = this._eat(this._lookahead.kind);
+				return {
+					type: token.type,
+					kind: token.kind,
+					value: token.value,
+				};
 			default:
 				throw new ParserError(
 					[`Unexpected literal token {}.`],
@@ -452,92 +476,33 @@ class Parser {
 	}
 
 	/**
-	 * CharLiteral
-	 *  : CHAR
-	 * ;
-	 */
-	CharLiteral() {
-		const token = this._eat("Char");
-		return {
-			type: "CharLiteral",
-			value: token.value,
-		};
-	}
-
-	/**
-	 * BoolLiteral
-	 *  : BoolTrue
-	 * | BoolFalse
-	 * ;
-	 */
-	BoolLiteral(option) {
-		const token = this._eat(option);
-		return {
-			type: token.type,
-			kind: token.kind,
-			value: token.value,
-		};
-	}
-
-	/**
-	 * NumericLiteral
-	 *   : NUMBER
-	 *   ;
-	 */
-	NumericLiteral() {
-		const token = this._eat("Number");
-		return {
-			type: "Literal",
-			kind: "Number",
-			value: token.value,
-		};
-	}
-
-	/**
-	 * StringLiteral
-	 *   : STRING
-	 *   ;
-	 */
-	StringLiteral() {
-		const token = this._eat("String");
-		return {
-			type: "Literal",
-			kind: "String",
-			value: token.value,
-		};
-	}
-
-	/**
-	 * Generic binary expression
-	 */
-	_BinaryExpression(builderName, operatorToken) {
-		let left = this[builderName]();
-
-		while (this._lookahead && this._lookahead.kind === operatorToken) {
-			const operator = this._eat(operatorToken).value;
-			const right = this[builderName]();
-
-			left = {
-				type: "BinaryExpression",
-				operator,
-				left,
-				right,
-			};
-		}
-
-		return left;
-	}
-
-	/**
 	 * Extra check whether it's valid assignment target
+	 * @param node The node to check
+	 * @returns {boolean} Whether it's a valid assignment target
 	 */
 	_checkValidAssignmentTarget(node) {
 		if (node.kind === "Variable") {
 			return node;
 		}
-		throw new ParserError([`Invalid left-hand side in assignment expression.`]);
+		throw new ParserError(
+			[
+				`Invalid left-hand side in assignment expression.`,
+				`Was expecting node to be Variable kind {}.`,
+				`Got {} instead.`,
+				`Line {} column {}`,
+			],
+			[Colors.green, node.kind],
+			[Colors.red, node.kind],
+			[Colors.white, this._tokenizer.line],
+			[Colors.white, this._tokenizer.column]
+		);
 	}
 
+	/**
+	 * Eat current token, and return it
+	 * @param {String} kind - Expecting kind of token to be eaten
+	 * @returns {Token}
+	 */
 	_eat(kind) {
 		const token = this._lookahead;
 

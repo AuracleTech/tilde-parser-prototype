@@ -1,3 +1,14 @@
-if (true) {
+let meme = (2264 - 164 * 5) + 3
 
+~
+{
+    let my_cat = "Garfield"
+    #const my_age = (2018 - 1945)
+    #if (my_age > 16 && my_age < 100) {
+    #    console_print = "I'm a human"
+    #}
 }
+~
+# TODO: Else if maybe
+# TODO: Sub, multiple, negative, decimal, etc
+# TODO: Greater, less, etc comparisons
