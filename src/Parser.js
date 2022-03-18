@@ -109,9 +109,7 @@ class Parser {
 	 */
 	IfStatement() {
 		this._eat("If");
-		this._eat("(");
-		const expression = this.Expression();
-		this._eat(")");
+		const expression = this.ParenthizedExpression();
 		const thenBranch = this.Statement();
 		if (this._lookahead && this._lookahead.kind === "Else") {
 			this._eat("Else");
@@ -138,11 +136,8 @@ class Parser {
 	 */
 	BlockStatement() {
 		this._eat("{");
-
 		const body = this._lookahead.kind === "}" ? [] : this.StatementList("}");
-
 		this._eat("}");
-
 		return {
 			type: "BlockStatement",
 			body,

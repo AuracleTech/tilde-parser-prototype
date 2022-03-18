@@ -1,7 +1,3 @@
-let incredibly_simple ='E'
-
 if (true) {
-    incredibly_simple = "It wasn't."
-} else {
-    incredibly_simple = "It was. Like, really."
+
 }
